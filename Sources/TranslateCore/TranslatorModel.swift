@@ -25,6 +25,8 @@ public final class TranslatorModel {
     public enum Phase: Equatable {
         case idle
         case translating
+        case needsMoreText
+        case sameLanguage
         case failed(String)
     }
 
@@ -36,6 +38,7 @@ public final class TranslatorModel {
     public private(set) var detectedLanguage: Locale.Language?
     public private(set) var phase: Phase = .idle
     public private(set) var configuration: TranslationSession.Configuration?
+    private var requestRevision = 0
 
     public init(sourceLanguage: Locale.Language? = nil, targetLanguage: Locale.Language) {
         self.sourceLanguage = sourceLanguage
@@ -57,18 +60,41 @@ public final class TranslatorModel {
     }
 
     public var canSwap: Bool {
-        (sourceLanguage ?? detectedLanguage) != nil
+        phase != .sameLanguage && (sourceLanguage ?? detectedLanguage) != nil
     }
 
     /// Asks the view layer to open a new translation session. The session only
     /// exists inside the SwiftUI `translationTask` modifier, so the model cannot
     /// create one itself.
     public func requestTranslation() {
-        if var current = configuration, current.source == sourceLanguage, current.target == targetLanguage {
+        requestRevision += 1
+        outputText = ""
+        detectedLanguage = nil
+        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else {
+            phase = .idle
+            configuration = nil
+            return
+        }
+        let translationSource = sourceLanguage ?? AutomaticLanguageDetector.confidentLanguage(for: text)
+        guard let translationSource else {
+            phase = .needsMoreText
+            configuration = nil
+            return
+        }
+        if translationSource.languageCode == targetLanguage.languageCode,
+           translationSource.script == targetLanguage.script {
+            detectedLanguage = sourceLanguage == nil ? translationSource : nil
+            phase = .sameLanguage
+            configuration = nil
+            return
+        }
+        phase = .translating
+        if var current = configuration, current.source == translationSource, current.target == targetLanguage {
             current.invalidate()
             configuration = current
         } else {
-            configuration = TranslationSession.Configuration(source: sourceLanguage, target: targetLanguage)
+            configuration = TranslationSession.Configuration(source: translationSource, target: targetLanguage)
         }
     }
 
@@ -101,10 +127,12 @@ public final class TranslatorModel {
         }
         phase = .translating
         let (source, target) = (sourceLanguage, targetLanguage)
+        let revision = requestRevision
         // A newer edit or language choice replaces this request; its own run owns the output and the phase.
         let isCurrent = {
             self.inputText.trimmingCharacters(in: .whitespacesAndNewlines) == text
                 && self.sourceLanguage == source && self.targetLanguage == target
+                && self.requestRevision == revision
         }
         do {
             let result = try await translator.translate(text)
@@ -118,7 +146,13 @@ public final class TranslatorModel {
             // Cocoa "user cancelled" error. Neither is a failure to show.
             let wasCancelled = error is CancellationError || Task.isCancelled
                 || (error as? CocoaError)?.code == .userCancelled
-            phase = wasCancelled ? .idle : .failed(error.localizedDescription)
+            if wasCancelled {
+                phase = .idle
+            } else if source == nil, TranslationError.unableToIdentifyLanguage ~= error {
+                phase = .needsMoreText
+            } else {
+                phase = .failed((error as? TranslationError)?.failureReason ?? error.localizedDescription)
+            }
         }
     }
 }

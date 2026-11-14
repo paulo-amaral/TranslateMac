@@ -4,7 +4,7 @@
 
 | Target | Role | Depends on |
 | --- | --- | --- |
-| `TranslateCore` | State and rules: `TranslatorModel`, `LanguageOption`, `LanguageCatalog`, the `TextTranslating` protocol | Foundation, Observation, Translation (only for `TranslationSession.Configuration`) |
+| `TranslateCore` | State and rules: `TranslatorModel`, `LanguageOption`, `LanguageCatalog`, `AutomaticLanguageDetector`, the `TextTranslating` protocol | Foundation, Observation, NaturalLanguage, Translation (only for `TranslationSession.Configuration` and errors) |
 | `TranslateUI` | SwiftUI views, the adapter from `TranslationSession` to `TextTranslating`, speech | `TranslateCore`, SwiftUI, Translation, AVFoundation |
 | `TranslateMac` | AppKit entry point: floating panel, global shortcut, menu bar item, Services handler | `TranslateUI`, `TranslateCore`, AppKit, Carbon (hot key only) |
 | `TranslateCoreTests` | Unit tests with a stub translator | `TranslateCore` |
@@ -12,15 +12,18 @@
 ## Data flow
 
 1. The person types. `TranslatorView` sees `inputText` change and calls `model.requestTranslation()`.
-2. The model publishes a new `TranslationSession.Configuration` (or calls `invalidate()` on the same pair).
+2. With "Detect Language", Natural Language checks whether the source is clear enough. If it is not, the model waits
+   for more text. If it matches the target, the view explains that no translation is needed. Otherwise the model
+   publishes a `TranslationSession.Configuration` with that source (or calls
+   `invalidate()` on the same pair).
 3. The `translationTask` modifier opens a session, waits 300 ms, and calls `model.run(using: SessionTranslator(session:))`.
-4. `run` trims the text, calls the translator, drops the answer if the input changed meanwhile, then stores the output
-   and the detected language.
+4. `run` trims the text, calls the translator, drops the answer if a newer request replaced it, then stores the output
+   and the detected language. A new request clears the previous output and detected-language label immediately.
 5. Failures become `phase = .failed(message)`; the view shows the message and a next step.
 
 ## Data model
 No persistence. State lives in memory: source (optional, nil means detect), target, input, output, detected language,
-phase (`idle`, `translating`, `failed`).
+phase (`idle`, `translating`, `needsMoreText`, `sameLanguage`, `failed`).
 
 ## Decisions
 
@@ -40,7 +43,8 @@ phase (`idle`, `translating`, `failed`).
 
 ### ADR 3. Last-write-wins instead of a request queue
 - Context: translation runs on every pause in typing.
-- Decision: after the await, `run` compares the trimmed input with the text it sent and discards stale answers.
+- Decision: every request has a revision; after the await, `run` checks that revision, the input and language choice
+  before accepting the answer.
 - Consequence: no queue and no extra state. The system may still translate a stale text once; the result is dropped.
 
 ### ADR 4. No app-only appearance, language list from the system
@@ -70,6 +74,13 @@ phase (`idle`, `translating`, `failed`).
 ### ADR 8. The language pair is remembered
 - Decision: `saveLanguages` writes the two language codes to UserDefaults; `init(defaults:)` restores them.
 - Consequence: the panel reopens on the last pair. No text is stored.
+
+### ADR 9. Speech recognition needs a language before recording
+- Context: `SFSpeechRecognizer` recognises one locale chosen when it is created. Text language detection runs only
+  after there is a transcript.
+- Decision: with "Detect Language" and no detected text, ask the person to choose the spoken source language before
+  starting dictation. Do not silently use the Mac's current language.
+- Consequence: voice input cannot automatically identify an unknown spoken language before transcription.
 
 ## Left out on purpose
 Database, cache, history, network layer, settings, dependency injection container, a language download screen.

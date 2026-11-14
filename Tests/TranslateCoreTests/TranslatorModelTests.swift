@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import Translation
 @testable import TranslateCore
 
 private let english = Locale.Language(identifier: "en")
@@ -34,6 +35,15 @@ private struct LanguageChangingTranslator: TextTranslating {
     func translate(_ text: String) async throws -> TranslatedText {
         model.targetLanguage = german
         return TranslatedText(source: english, target: portuguese, text: "olá")
+    }
+}
+
+private struct ReplacedRequestTranslator: TextTranslating {
+    let model: TranslatorModel
+
+    func translate(_ text: String) async throws -> TranslatedText {
+        model.requestTranslation()
+        return TranslatedText(source: english, target: portuguese, text: "old result")
     }
 }
 
@@ -104,6 +114,84 @@ struct TranslatorModelTests {
         #expect(model.outputText.isEmpty)
     }
 
+    @Test func editingClearsPreviousTranslationAndDetectionImmediately() async {
+        let model = TranslatorModel(targetLanguage: portuguese)
+        model.inputText = "hello"
+        await model.run(using: StubTranslator())
+        model.inputText = "This is a longer sentence written in English."
+        model.requestTranslation()
+        #expect(model.outputText.isEmpty)
+        #expect(model.detectedLanguage == nil)
+        #expect(model.phase == .translating)
+    }
+
+    @Test func replacedRequestDropsAnswerEvenWhenTextIsUnchanged() async {
+        let model = TranslatorModel(sourceLanguage: english, targetLanguage: portuguese)
+        model.inputText = "hello"
+        model.requestTranslation()
+        await model.run(using: ReplacedRequestTranslator(model: model))
+        #expect(model.outputText.isEmpty)
+        #expect(model.phase == .translating)
+    }
+
+    @Test func uncertainAutomaticDetectionAsksForMoreText() async {
+        let model = TranslatorModel(targetLanguage: portuguese)
+        model.inputText = "a"
+        await model.run(using: StubTranslator(failure: TranslationError.unableToIdentifyLanguage))
+        #expect(model.phase == .needsMoreText)
+        #expect(model.detectedLanguage == nil)
+    }
+
+    @Test func shortAmbiguousInputDoesNotOpenATranslationSession() {
+        let model = TranslatorModel(targetLanguage: portuguese)
+        model.inputText = "a"
+        model.requestTranslation()
+        #expect(model.configuration == nil)
+        #expect(model.phase == .needsMoreText)
+    }
+
+    @Test func confidentAutomaticDetectionSetsTheSessionSource() {
+        let model = TranslatorModel(targetLanguage: portuguese)
+        model.inputText = "This is a longer sentence written in English."
+        model.requestTranslation()
+        #expect(model.configuration?.source?.languageCode?.identifier == "en")
+        #expect(model.phase == .translating)
+    }
+
+    @Test func confidentPortugueseDetectionSetsTheSessionSource() {
+        let model = TranslatorModel(targetLanguage: english)
+        model.inputText = "Esta é uma frase escrita em português para identificar o idioma."
+        model.requestTranslation()
+        #expect(model.configuration?.source?.languageCode?.identifier == "pt")
+        #expect(model.phase == .translating)
+    }
+
+    @Test func explicitSourceAllowsShortInput() {
+        let model = TranslatorModel(sourceLanguage: english, targetLanguage: portuguese)
+        model.inputText = "a"
+        model.requestTranslation()
+        #expect(model.configuration?.source == english)
+        #expect(model.phase == .translating)
+    }
+
+    @Test func detectedSourceMatchingTargetDoesNotStartTranslation() {
+        let model = TranslatorModel(targetLanguage: english)
+        model.inputText = "This is a longer sentence written in English."
+        model.requestTranslation()
+        #expect(model.configuration == nil)
+        #expect(model.detectedLanguage?.languageCode?.identifier == "en")
+        #expect(model.phase == .sameLanguage)
+        #expect(model.canSwap == false)
+    }
+
+    @Test func explicitSourceMatchingTargetDoesNotStartTranslation() {
+        let model = TranslatorModel(sourceLanguage: english, targetLanguage: Locale.Language(identifier: "en-US"))
+        model.inputText = "hello"
+        model.requestTranslation()
+        #expect(model.configuration == nil)
+        #expect(model.phase == .sameLanguage)
+    }
+
     @Test func languagePairSurvivesARestart() throws {
         let suite = "TranslatorModelTests.languagePair"
         let defaults = try #require(UserDefaults(suiteName: suite))
@@ -152,6 +240,7 @@ struct TranslatorModelTests {
 
     @Test func requestTranslationReusesConfigurationForSamePair() {
         let model = TranslatorModel(sourceLanguage: english, targetLanguage: portuguese)
+        model.inputText = "hello"
         model.requestTranslation()
         let first = model.configuration
         model.requestTranslation()

@@ -9,6 +9,7 @@ public struct TranslatorView: View {
     @State private var speaker = Speaker()
     @State private var typoSuggestion: String?
     @State private var dictation = Dictation()
+    @State private var needsSpokenLanguage = false
 
     public init(model: TranslatorModel) {
         _model = State(initialValue: model)
@@ -34,6 +35,7 @@ public struct TranslatorView: View {
             model.requestTranslation()
         }
         .onChange(of: [model.sourceLanguage, model.targetLanguage]) {
+            needsSpokenLanguage = false
             model.saveLanguages(to: .standard)
             model.requestTranslation()
         }
@@ -88,8 +90,12 @@ public struct TranslatorView: View {
                 }
                 Spacer()
                 Button {
+                    guard let language = spokenSourceLanguage else {
+                        needsSpokenLanguage = true
+                        return
+                    }
+                    needsSpokenLanguage = false
                     let typedText = model.inputText
-                    let language = spokenSourceLanguage ?? Locale.current.language
                     dictation.toggle(language: language) { transcript in
                         model.inputText = typedText.isEmpty ? transcript : typedText + " " + transcript
                     }
@@ -101,7 +107,9 @@ public struct TranslatorView: View {
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
-                .help(dictation.isListening ? "Stop listening to the microphone" : "Speak the text instead of typing it")
+                .help(dictation.isListening ? "Stop listening to the microphone" :
+                    spokenSourceLanguage == nil ? "Choose the source language before dictating" :
+                    "Speak the text instead of typing it")
 
                 Button {
                     if let language = spokenSourceLanguage {
@@ -140,6 +148,12 @@ public struct TranslatorView: View {
                         .padding(.leading, 5)
                         .allowsHitTesting(false)
                 }
+            }
+
+            if needsSpokenLanguage && spokenSourceLanguage == nil {
+                Label("Choose the language you will speak above, then start dictation. Voice recognition needs a language before it can transcribe.", systemImage: "waveform")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
 
             if let problem = dictation.problem {
@@ -240,6 +254,16 @@ public struct TranslatorView: View {
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else if model.phase == .needsMoreText {
+            Text("Keep typing so the source language can be detected, or choose it above.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else if model.phase == .sameLanguage {
+            Text("The text is already in the target language. Choose another target language to translate it.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else if model.outputText.isEmpty {
             Text("Translation")
                 .font(.title2)
