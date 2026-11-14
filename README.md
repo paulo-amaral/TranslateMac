@@ -13,16 +13,16 @@ read the translation. It uses Apple's Translation framework, so the text you tra
 
 ## Features
 
-- **Floating panel.** Opens over any app or full-screen space with `Cmd + \` or from the menu bar icon. The app you
+- **Floating panel -** Opens over any app or full-screen space with `Cmd + \` or from the menu bar icon. The app you
   were using stays in front.
-- **On-device translation.** Apple's Translation framework, with automatic language detection and translation while
+- **On-device translation -** Apple's Translation framework, with automatic language detection and translation while
   you type.
-- **Translate a selection anywhere.** Select text in a browser or any app, right-click, then
+- **Translate a selection anywhere -** Select text in a browser or any app, right-click, then
   Services > Translate with TranslateMac.
-- **Dictation.** Speak instead of typing. Speech is recognised on the Mac only.
-- **Listen and copy.** Hear the original or the translation, copy the result, swap the languages.
-- **Spelling suggestion.** "Did you mean" from the system spell checker.
-- **Small and native.** Swift, SwiftUI and AppKit. No third-party packages, no Electron, no web view.
+- **Dictation -** Speak instead of typing. Speech is recognised on the Mac only.
+- **Listen and copy -** Hear the original or the translation, copy the result, swap the languages.
+- **Spelling suggestion -** "Did you mean" from the system spell checker.
+- **Small and native -** Swift, SwiftUI and AppKit. No third-party packages, no Electron, no web view.
 
 ## Privacy
 
