@@ -1,0 +1,24 @@
+# SwiftPM and Xcode
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/xcuserdata/
+*.xcuserstate
+
+# Release artifacts
+*.zip
+*.zip.sha256
+
+# macOS
+.DS_Store
+
+# Secrets must never be committed
+.env
+.env.*
+*.p12
+*.pem
+*.mobileprovision
+
+# Local tool state
+.kilo/
+.impeccable/
