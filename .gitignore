@@ -22,3 +22,6 @@ DerivedData/
 # Local tool state
 .kilo/
 .impeccable/
+
+# Agent instructions stay local
+CLAUDE.md
