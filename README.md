@@ -95,11 +95,6 @@ Apple Intelligence.
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
-## Acknowledgements
-
-The floating panel and its shortcuts follow the idea of [mac-translate](https://github.com/m-inan/mac-translate) by
-m-inan. TranslateMac shares no code with it and translates on the device instead of loading a web page.
-
 ## License
 
 [MIT](LICENSE)
