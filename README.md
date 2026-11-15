@@ -13,9 +13,9 @@ read the translation. Apple translation runs on device by default. An optional G
 
 The same Portuguese sentence translated into English:
 
-![alt text](image-1.png)
+![alt text|200](image-1.png)
 
-![alt text](image-2.png)
+![alt text|200](image-2.png)
 
 ## Features
 
