@@ -82,6 +82,15 @@ phase (`idle`, `translating`, `needsMoreText`, `sameLanguage`, `failed`).
   starting dictation. Do not silently use the Mac's current language.
 - Consequence: voice input cannot automatically identify an unknown spoken language before transcription.
 
+### ADR 10. Whole-sentence correction by the on-device language model
+- Context: the spell checker corrects word by word and often picks the wrong word.
+- Decision: `SentenceCorrector` asks `SystemLanguageModel.default` (Foundation Models, macOS 26 or later) to correct
+  short text, and falls back to `TypoFixer` when the model is missing, not ready or does not support the language.
+  The cloud model type is not used. The model's answer is a suggestion only, and `CorrectionGuard` in `TranslateCore`
+  drops answers that are empty, unchanged, much longer or shorter, or that add lines.
+- Consequence: the text stays on the Mac. The typed text is untrusted input to the model, so the guard and the
+  explicit accept step are what keep a derailed answer out of the input field.
+
 ## Left out on purpose
 Database, cache, history, network layer, settings, dependency injection container, a language download screen.
 Each can be added when a real need appears.

@@ -10,6 +10,11 @@ This project follows [Semantic Versioning](https://semver.org) and the format of
 - A dictation start that is still waiting for permission no longer opens the microphone after the panel is closed
   or the text is cleared.
 
+### Added
+
+- Spelling and grammar suggestions for the whole sentence, from the on-device Apple Intelligence model, on Macs
+  where that model is ready (macOS 26 or later). Other Macs keep the word-by-word spell checker.
+
 ### Changed
 
 - Text sent by another app through the Services menu no longer replaces text you typed without asking, and is cut at

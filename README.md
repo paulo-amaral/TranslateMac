@@ -23,7 +23,8 @@ read the translation. It uses Apple's Translation framework, so the text you tra
   Services > Translate with TranslateMac.
 - **Dictation -** Speak instead of typing. Choose the spoken language first; speech recognition runs on the Mac only.
 - **Listen and copy -** Hear the original or the translation, copy the result, swap the languages.
-- **Spelling suggestion -** "Did you mean" from the system spell checker.
+- **Spelling suggestion -** "Did you mean" for the whole sentence from the on-device Apple Intelligence model when
+  it is ready (macOS 26 or later), otherwise from the system spell checker.
 - **Small and native -** Swift, SwiftUI and AppKit. No third-party packages, no Electron, no web view.
 
 ## Privacy

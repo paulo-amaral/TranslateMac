@@ -41,7 +41,14 @@ public struct TranslatorView: View {
         }
         .onChange(of: model.phase) {
             guard model.phase == .idle else { return }
-            typoSuggestion = TypoFixer.correctedText(for: model.inputText, language: spokenSourceLanguage)
+            let (text, language) = (model.inputText, spokenSourceLanguage)
+            Task {
+                let suggestion = await SentenceCorrector.correctedText(for: text, language: language)
+                // The model can take a moment; the person may have typed on meanwhile.
+                if model.inputText == text {
+                    typoSuggestion = suggestion
+                }
+            }
         }
         // Hiding the panel must close the microphone and stop any speech.
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { _ in
