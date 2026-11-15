@@ -23,7 +23,8 @@
 
 In Google mode, `GoogleTranslateView` displays the Google Translate site in a `WKWebView`. When text arrives from
 Services or the Apple mode, the view loads a URL that pre-fills up to 5,000 characters. Further edits happen on the
-site itself. The Apple translation task is disabled while this mode is selected.
+site itself; the app does not read those edits or the resulting translation from the page. The Apple translation task
+is disabled while this mode is selected. The service picker uses `AppStorage` to restore the last selected mode.
 
 ## Data model
 Text and translation state live in memory: source (optional, nil means detect), target, input, output, detected language,

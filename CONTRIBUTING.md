@@ -5,7 +5,8 @@ Thanks for helping. A few rules keep the app small and private.
 ## Rules
 
 - Apple frameworks only. No third-party packages.
-- No network code. No storage or logging of the text people translate.
+- Apple translation must remain on device. Google translation uses the website in `WKWebView`; do not add another
+  network service, analytics, or storage or logging of translated text without updating the privacy documentation.
 - Rules and state go in `TranslateCore`, with tests. Views go in `TranslateUI`. App plumbing goes in `TranslateMac`.
 - The interface follows Apple's Human Interface Guidelines: system colors and text styles, a tooltip on every
   icon-only control, no app-only light or dark switch.

@@ -12,7 +12,8 @@ Only the latest release receives fixes.
 ## What the app does with your data
 
 - Apple translation runs on the Mac with Apple's Translation framework. The optional Google Translate mode loads
-  Google's site in a WebKit view and sends text entered there, or text prefilled from the app, to Google.
+  `translate.google.com` in a WebKit view. Text entered there, or up to 5,000 characters prefilled from the app,
+  is sent to Google when this mode is selected. It requires internet access.
 - Dictation uses on-device speech recognition only. A language without it is refused, not sent to a server.
 - The native app does not write translated text to disk or a log. The Google web view uses an in-memory website
   data store. The app saves two language codes and the selected translation service.

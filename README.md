@@ -1,7 +1,8 @@
 # TranslateMac
 
-**A Spotlight-style translator for macOS that runs on your Mac.** Press `Cmd + \` in any app, type or paste, and
-read the translation. Apple translation runs on device by default. An optional Google Translate view uses the web.
+**A Spotlight-style translator for macOS with Apple and Google Translate modes.** Press `Cmd + \` in any app,
+type or paste, and read the translation. Apple translation runs on your Mac by default; the optional Google mode
+loads Google Translate in an embedded WebKit view.
 
 [![CI](https://github.com/paulo-amaral/TranslateMac/actions/workflows/ci.yml/badge.svg)](https://github.com/paulo-amaral/TranslateMac/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/paulo-amaral/TranslateMac)](https://github.com/paulo-amaral/TranslateMac/releases/latest)
@@ -17,6 +18,19 @@ The same Portuguese sentence translated into English:
 
 <img src="image-2.png" width="300" alt="Google translation of Olá, como você está? into English">
 
+## Choose a translation service
+
+Open the panel with `Cmd + \` or the menu bar icon, then use the **Apple / Google** picker beside **TranslateMac**.
+The app remembers your choice.
+
+| Mode | How it works | Connection |
+| --- | --- | --- |
+| **Apple** (default) | Translates in the native panel with Apple's Translation framework. | Translation runs on the Mac; a language may need an initial system download. |
+| **Google** | Opens the Google Translate website inside the panel. Existing text is prefilled when you switch modes or send a selection through Services; you can also type directly on the page. | Requires internet; text entered on the page or prefilled by the app is sent to Google. |
+
+Google mode uses the website, so no Google Cloud API key is needed. Its interface and availability can change when
+Google updates the site. See [Privacy](#privacy) for the data sent in this mode.
+
 ## Features
 
 - **Floating panel -** Opens over any app or full-screen space with `Cmd + \` or from the menu bar icon. The app you
@@ -25,7 +39,7 @@ The same Portuguese sentence translated into English:
   to change **Open at Login**.
 - **On-device translation -** Apple's Natural Language framework detects the source language, and the Translation
   framework translates while you type. Unclear short text waits for more input or a manual language choice.
-- **Optional Google Translate -** Choose Google Translate (web) in the panel to use its site inside a macOS WebKit
+- **Optional Google Translate -** Choose Google in the panel to use its site inside a macOS WebKit
   view. Its narrow panel hides the site's extra navigation and uses colors and type that follow the native panel.
   Selected text is prefilled there; you can also type
   directly on the site. This mode requires internet access.
