@@ -9,7 +9,9 @@ read the translation. It uses Apple's Translation framework, so the text you tra
 ![macOS 15+](https://img.shields.io/badge/macOS-15%2B-blue)
 ![Swift 6](https://img.shields.io/badge/Swift-6-orange)
 
-![TranslateMac translating a Portuguese sentence to English in a floating panel](docs/screenshot.png)
+<p align="center">
+  <img src="docs/screenshot.png" width="550" alt="TranslateMac translating a Portuguese sentence to English in a floating panel">
+</p>
 
 ## Features
 
