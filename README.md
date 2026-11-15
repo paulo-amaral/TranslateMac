@@ -13,9 +13,9 @@ read the translation. Apple translation runs on device by default. An optional G
 
 The same Portuguese sentence translated into English:
 
-![alt text|200](image-1.png)
+<img src="image-1.png" width="420" alt="Apple translation of Olá, como você está? into English">
 
-![alt text|200](image-2.png)
+<img src="image-2.png" width="300" alt="Google translation of Olá, como você está? into English">
 
 ## Features
 
