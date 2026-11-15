@@ -1,0 +1,38 @@
+name: Contribution proposal
+description: Describe a change you plan to contribute before opening a pull request
+title: "[Contribution]: "
+body:
+  - type: dropdown
+    id: contribution-kind
+    attributes:
+      label: Contribution type
+      options:
+        - Standard fix, documentation, or tests
+        - Custom feature or workflow
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the user need or the defect. Do not include private translated text.
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Proposed change
+      description: Outline the behavior, files, or interface you expect to change.
+    validations:
+      required: true
+  - type: input
+    id: related-issue
+    attributes:
+      label: Related issue
+      description: Link an existing bug report or feature request, if there is one.
+      placeholder: "#123"
+  - type: textarea
+    id: verification
+    attributes:
+      label: How you will verify it
+      description: Mention tests and any manual checks needed for Apple or Google mode.

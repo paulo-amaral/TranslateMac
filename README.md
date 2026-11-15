@@ -128,6 +128,8 @@ Apple Intelligence.
 ## Contributing
 
 Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
+Use the GitHub forms to [request a feature](https://github.com/paulo-amaral/TranslateMac/issues/new?template=feature_request.yml)
+or [propose a contribution](https://github.com/paulo-amaral/TranslateMac/issues/new?template=contribution_proposal.yml).
 
 ## License
 

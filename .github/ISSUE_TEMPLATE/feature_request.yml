@@ -1,13 +1,37 @@
 name: Feature request
-description: Suggest something the app should do
+description: Request a standard improvement or a custom workflow
+title: "[Request]: "
 labels: [enhancement]
 body:
-  - type: textarea
+  - type: dropdown
+    id: request-kind
     attributes:
-      label: What you want to do
-      description: Describe the task, not only the solution.
+      label: Request type
+      description: Choose the closest match.
+      options:
+        - Standard improvement
+        - Custom workflow or behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: translation-mode
+    attributes:
+      label: Affected mode
+      options:
+        - Apple
+        - Google
+        - Both or general app behavior
     validations:
       required: true
   - type: textarea
+    id: user-need
+    attributes:
+      label: What you want to do
+      description: Describe the task or problem. Do not include private text you translated.
+    validations:
+      required: true
+  - type: textarea
+    id: suggested-behavior
     attributes:
       label: How it could work
+      description: Include a preferred design or example if you have one.

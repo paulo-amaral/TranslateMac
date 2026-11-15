@@ -13,9 +13,15 @@ Thanks for helping. A few rules keep the app small and private.
 
 ## Workflow
 
-1. Open an issue first for anything larger than a small fix.
+1. For a new behavior, open a [feature request](https://github.com/paulo-amaral/TranslateMac/issues/new?template=feature_request.yml).
+   If you plan to implement a larger change, open a [contribution proposal](https://github.com/paulo-amaral/TranslateMac/issues/new?template=contribution_proposal.yml)
+   before coding. Both forms distinguish standard improvements from custom workflows.
 2. Write the test, then the change.
 3. Run `make test`, then `make run` and check the panel yourself.
-4. Open a pull request that says what changes and why.
+4. Open a pull request. Its template asks for the contribution type, related request, changes, and verification.
+
+Small bug fixes and documentation changes can go directly to a pull request. Use the
+[bug report form](https://github.com/paulo-amaral/TranslateMac/issues/new?template=bug_report.yml) when reporting a
+problem without a fix.
 
 Design notes live in `docs/architecture.md`.
