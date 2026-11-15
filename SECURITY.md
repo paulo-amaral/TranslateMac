@@ -11,9 +11,11 @@ Only the latest release receives fixes.
 
 ## What the app does with your data
 
-- Translation runs on the Mac with Apple's Translation framework. The app has no network code.
+- Apple translation runs on the Mac with Apple's Translation framework. The optional Google Translate mode loads
+  Google's site in a WebKit view and sends text entered there, or text prefilled from the app, to Google.
 - Dictation uses on-device speech recognition only. A language without it is refused, not sent to a server.
-- The text you translate is never written to disk or to a log. The app saves two language codes, nothing else.
+- The native app does not write translated text to disk or a log. The Google web view uses an in-memory website
+  data store. The app saves two language codes and the selected translation service.
 - The app asks for Microphone and Speech Recognition access, and only when you start dictation.
 
 ## Release integrity

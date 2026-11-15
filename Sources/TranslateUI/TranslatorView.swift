@@ -3,7 +3,17 @@ import SwiftUI
 @preconcurrency import Translation
 import TranslateCore
 
+private enum TranslationService: String {
+    case apple
+    case google
+}
+
+public extension Notification.Name {
+    static let translationServiceDidChange = Notification.Name("TranslateMac.translationServiceDidChange")
+}
+
 public struct TranslatorView: View {
+    @AppStorage("translationService") private var translationService: TranslationService = .apple
     @State private var model: TranslatorModel
     @State private var languages: [LanguageOption] = []
     @State private var speaker = Speaker()
@@ -17,12 +27,42 @@ public struct TranslatorView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            inputPane
-            swapDivider
-            outputPane
+            HStack(spacing: 10) {
+                Text("TranslateMac")
+                    .font(.headline)
+                Picker("Translation service", selection: $translationService) {
+                    Text("Apple").tag(TranslationService.apple)
+                    Text("Google").tag(TranslationService.google)
+                }
+                .labelsHidden()
+                .fixedSize()
+                .help(translationService == .google
+                    ? "Google Translate receives text entered in its page or sent from the app"
+                    : "Apple translates on this Mac")
+                Spacer()
+                if translationService == .google {
+                    Text("Sent to Google")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(translationService == .google
+                ? Color(nsColor: .windowBackgroundColor)
+                : Color.clear)
+
+            if translationService == .apple {
+                inputPane
+                swapDivider
+                outputPane
+            } else {
+                googlePane
+            }
         }
         .frame(minWidth: 420, minHeight: 300)
-        .translationTask(model.configuration) { session in
+        .translationTask(translationService == .apple ? model.configuration : nil) { session in
             do {
                 try await Task.sleep(for: .milliseconds(300))
             } catch {
@@ -32,12 +72,19 @@ public struct TranslatorView: View {
         }
         .onChange(of: model.inputText) {
             typoSuggestion = nil
-            model.requestTranslation()
+            if translationService == .apple { model.requestTranslation() }
         }
         .onChange(of: [model.sourceLanguage, model.targetLanguage]) {
             needsSpokenLanguage = false
             model.saveLanguages(to: .standard)
-            model.requestTranslation()
+            if translationService == .apple { model.requestTranslation() }
+        }
+        .onChange(of: translationService) {
+            NotificationCenter.default.post(
+                name: .translationServiceDidChange,
+                object: translationService.rawValue
+            )
+            if translationService == .apple { model.requestTranslation() }
         }
         .onChange(of: model.phase) {
             guard model.phase == .idle else { return }
@@ -72,6 +119,39 @@ public struct TranslatorView: View {
 
     private var spokenSourceLanguage: Locale.Language? {
         model.sourceLanguage ?? model.detectedLanguage
+    }
+
+    private var googlePane: some View {
+        VStack(spacing: 0) {
+            if model.pendingExternalText != nil {
+                HStack {
+                    Text("Another app sent text to translate.")
+                    Spacer()
+                    Button("Keep My Text") { model.resolvePendingExternalText(replace: false) }
+                    Button("Replace") { model.resolvePendingExternalText(replace: true) }
+                }
+                .padding(12)
+            }
+            if model.inputText.count > 5_000 {
+                Text("Google Translate receives only the first 5,000 characters from the selected text.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(8)
+            }
+            GoogleTranslateView(url: googleURL)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var googleURL: URL {
+        var components = URLComponents(string: "https://translate.google.com/")!
+        components.queryItems = [
+            URLQueryItem(name: "sl", value: model.sourceLanguage?.minimalIdentifier ?? "auto"),
+            URLQueryItem(name: "tl", value: model.targetLanguage.minimalIdentifier),
+            URLQueryItem(name: "text", value: String(model.inputText.prefix(5_000))),
+            URLQueryItem(name: "op", value: "translate"),
+        ]
+        return components.url!
     }
 
     private var inputPane: some View {

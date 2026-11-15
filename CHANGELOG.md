@@ -5,6 +5,8 @@ This project follows [Semantic Versioning](https://semver.org) and the format of
 
 ## [Unreleased]
 
+## [0.2.0]
+
 ### Fixed
 
 - A dictation start that is still waiting for permission no longer opens the microphone after the panel is closed
@@ -12,11 +14,16 @@ This project follows [Semantic Versioning](https://semver.org) and the format of
 
 ### Added
 
+- Optional Google Translate inside a compact WebKit panel, with light and dark styling and selected text prefilled
+  from the app.
+- Open at Login control in the menu bar menu. The installed app requests registration on first launch and links to
+  macOS Login Items when approval is needed.
 - Spelling and grammar suggestions for the whole sentence, from the on-device Apple Intelligence model, on Macs
   where that model is ready (macOS 26 or later). Other Macs keep the word-by-word spell checker.
 
 ### Changed
 
+- The Google panel uses a smaller layout and keeps its controls readable in dark mode.
 - Text sent by another app through the Services menu no longer replaces text you typed without asking, and is cut at
   20,000 characters.
 - Spelling suggestions are skipped for text longer than 2,000 characters, which kept the panel from freezing.

@@ -10,8 +10,9 @@ final class FloatingPanel: NSPanel {
     private var previousApp: NSRunningApplication?
 
     init(model: TranslatorModel) {
+        let googleMode = UserDefaults.standard.string(forKey: "translationService") == "google"
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 360),
+            contentRect: NSRect(x: 0, y: 0, width: googleMode ? 420 : 550, height: googleMode ? 500 : 360),
             styleMask: [.nonactivatingPanel, .titled, .closable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -40,7 +41,28 @@ final class FloatingPanel: NSPanel {
         hosting.autoresizingMask = [.width, .height]
         background.addSubview(hosting)
         contentView = background
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(translationServiceChanged(_:)),
+            name: .translationServiceDidChange,
+            object: nil
+        )
         center()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func translationServiceChanged(_ notification: Notification) {
+        let googleMode = notification.object as? String == "google"
+        let size = NSSize(width: googleMode ? 420 : 550, height: googleMode ? 500 : 360)
+        var newFrame = frame
+        let top = newFrame.maxY
+        let centerX = newFrame.midX
+        newFrame.size = size
+        newFrame.origin = NSPoint(x: centerX - size.width / 2, y: top - size.height)
+        setFrame(newFrame, display: true, animate: true)
     }
 
     override var canBecomeKey: Bool { true }

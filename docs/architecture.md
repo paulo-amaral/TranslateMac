@@ -5,13 +5,13 @@
 | Target | Role | Depends on |
 | --- | --- | --- |
 | `TranslateCore` | State and rules: `TranslatorModel`, `LanguageOption`, `LanguageCatalog`, `AutomaticLanguageDetector`, the `TextTranslating` protocol | Foundation, Observation, NaturalLanguage, Translation (only for `TranslationSession.Configuration` and errors) |
-| `TranslateUI` | SwiftUI views, the adapter from `TranslationSession` to `TextTranslating`, speech | `TranslateCore`, SwiftUI, Translation, AVFoundation |
+| `TranslateUI` | SwiftUI views, the adapter from `TranslationSession` to `TextTranslating`, speech, optional Google web view | `TranslateCore`, SwiftUI, Translation, AVFoundation, WebKit |
 | `TranslateMac` | AppKit entry point: floating panel, global shortcut, menu bar item, Services handler | `TranslateUI`, `TranslateCore`, AppKit, Carbon (hot key only) |
 | `TranslateCoreTests` | Unit tests with a stub translator | `TranslateCore` |
 
 ## Data flow
 
-1. The person types. `TranslatorView` sees `inputText` change and calls `model.requestTranslation()`.
+1. In Apple mode, the person types. `TranslatorView` sees `inputText` change and calls `model.requestTranslation()`.
 2. With "Detect Language", Natural Language checks whether the source is clear enough. If it is not, the model waits
    for more text. If it matches the target, the view explains that no translation is needed. Otherwise the model
    publishes a `TranslationSession.Configuration` with that source (or calls
@@ -21,9 +21,14 @@
    and the detected language. A new request clears the previous output and detected-language label immediately.
 5. Failures become `phase = .failed(message)`; the view shows the message and a next step.
 
+In Google mode, `GoogleTranslateView` displays the Google Translate site in a `WKWebView`. When text arrives from
+Services or the Apple mode, the view loads a URL that pre-fills up to 5,000 characters. Further edits happen on the
+site itself. The Apple translation task is disabled while this mode is selected.
+
 ## Data model
-No persistence. State lives in memory: source (optional, nil means detect), target, input, output, detected language,
-phase (`idle`, `translating`, `needsMoreText`, `sameLanguage`, `failed`).
+Text and translation state live in memory: source (optional, nil means detect), target, input, output, detected language,
+phase (`idle`, `translating`, `needsMoreText`, `sameLanguage`, `failed`). UserDefaults stores the language pair and
+translation service. The Google web view uses a nonpersistent website data store.
 
 ## Decisions
 
@@ -90,6 +95,18 @@ phase (`idle`, `translating`, `needsMoreText`, `sameLanguage`, `failed`).
   drops answers that are empty, unchanged, much longer or shorter, or that add lines.
 - Consequence: the text stays on the Mac. The typed text is untrusted input to the model, so the guard and the
   explicit accept step are what keep a derailed answer out of the input field.
+
+### ADR 11. Google Translate uses WebKit on macOS
+- Context: Microsoft Edge WebView2 is a Windows embedding component; macOS provides `WKWebView`.
+- Decision: offer Google Translate as an optional view of the site, with an in-memory website data store. The
+  selected service is remembered. Google mode receives text only when selected; the native Apple mode stays local.
+  The panel uses a narrow 420 × 500 layout in Google mode and hides nonessential page chrome with local CSS, following
+  the compact WebKit approach used by [BarTranslate](https://github.com/ThijmenDam/BarTranslate).
+- Decision: local CSS also applies system fonts and light/dark colors close to the native Apple panel. WebKit's
+  under-page color matches the chosen background during loading and overscroll.
+- Consequence: Google controls the translation interface and receives text entered there or prefilled from the app.
+  Its layout and availability depend on Google's site and internet access. CSS selectors may need updates when Google
+  changes the page.
 
 ## Left out on purpose
 Database, cache, history, network layer, settings, dependency injection container, a language download screen.
