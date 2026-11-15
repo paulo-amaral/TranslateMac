@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a short looping comparison from the two captured app screenshots.
+"""Create a short looping demo from the two user-provided app screenshots.
 
 Requires Pillow. Run from the repository root with:
     python3 scripts/make-demo-gif.py
@@ -15,21 +15,25 @@ SIZE = (960, 720)
 FPS = 10
 HOLD = 27
 FADE = 6
+APPLE_IMAGE = DOCS / "apple-empty.png"
+GOOGLE_IMAGE = DOCS / "google-result.png"
+
+for image_path in (APPLE_IMAGE, GOOGLE_IMAGE):
+    if not image_path.is_file():
+        raise SystemExit(f"Missing screenshot: {image_path}")
 
 
-def scene(path: Path, max_size: tuple[int, int], crop_bottom: int = 0) -> Image.Image:
+def scene(path: Path, max_size: tuple[int, int]) -> Image.Image:
     with Image.open(path) as source:
         source = source.convert("RGB")
-        if crop_bottom:
-            source = source.crop((0, 0, source.width, source.height - crop_bottom))
         source.thumbnail(max_size, Image.Resampling.LANCZOS)
         canvas = Image.new("RGB", SIZE, "#17181b")
         canvas.paste(source, ((SIZE[0] - source.width) // 2, (SIZE[1] - source.height) // 2))
         return canvas
 
 
-apple = scene(DOCS / "apple-mode.jpg", (940, 690))
-google = scene(DOCS / "google-mode.jpg", (720, 690), crop_bottom=160)
+apple = scene(APPLE_IMAGE, (940, 690))
+google = scene(GOOGLE_IMAGE, (720, 690))
 frames = []
 frames.extend([apple] * HOLD)
 frames.extend(Image.blend(apple, google, (i + 1) / (FADE + 1)) for i in range(FADE))

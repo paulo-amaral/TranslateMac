@@ -13,11 +13,9 @@ read the translation. Apple translation runs on device by default. An optional G
 
 The same Portuguese sentence translated into English:
 
-![Animated comparison of Apple on-device translation and Google Translate in the app](docs/translation-modes.gif)
+![alt text](image-1.png)
 
-| Apple translation on device | Google Translate in WebKit |
-| :---: | :---: |
-| <img src="docs/apple-mode.jpg" width="500" alt="Apple mode translating Portuguese into English"> | <img src="docs/google-mode.jpg" width="380" alt="Google mode translating Portuguese into English"> |
+![alt text](image-2.png)
 
 ## Features
 
