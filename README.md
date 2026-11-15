@@ -9,9 +9,13 @@ read the translation. Apple translation runs on device by default. An optional G
 ![macOS 15+](https://img.shields.io/badge/macOS-15%2B-blue)
 ![Swift 6](https://img.shields.io/badge/Swift-6-orange)
 
-<p align="center">
-  <img src="docs/screenshot.png" width="550" alt="TranslateMac translating a Portuguese sentence to English in a floating panel">
-</p>
+## Both translation modes
+
+The same Portuguese sentence translated into English:
+
+| Apple translation on device | Google Translate in WebKit |
+| :---: | :---: |
+| <img src="docs/apple-mode.jpg" width="500" alt="Apple mode translating Portuguese into English"> | <img src="docs/google-mode.jpg" width="380" alt="Google mode translating Portuguese into English"> |
 
 ## Features
 
