@@ -12,5 +12,6 @@ let package = Package(
         .target(name: "TranslateUI", dependencies: ["TranslateCore"]),
         .executableTarget(name: "TranslateMac", dependencies: ["TranslateUI", "TranslateCore"]),
         .testTarget(name: "TranslateCoreTests", dependencies: ["TranslateCore"]),
+        .testTarget(name: "TranslateUITests", dependencies: ["TranslateUI"]),
     ]
 )

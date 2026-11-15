@@ -11,17 +11,30 @@ final class Dictation {
 
     @ObservationIgnored private let engine = AVAudioEngine()
     @ObservationIgnored private var task: SFSpeechRecognitionTask?
+    @ObservationIgnored private let authorize: @Sendable () async -> Bool
+    /// Goes up on every start and every stop. A start that waited for permission compares its own
+    /// number with this one, so a stop issued during the wait still withdraws it.
+    @ObservationIgnored private var generation = 0
+
+    init(authorize: (@Sendable () async -> Bool)? = nil) {
+        self.authorize = authorize ?? Self.requestSystemAuthorization
+    }
 
     /// `onText` receives the whole transcript so far, each time it grows or is revised.
-    func toggle(language: Locale.Language, onText: @escaping @MainActor (String) -> Void) {
+    /// Returns the pending start, so a caller can wait for it; nil when the call stopped dictation.
+    @discardableResult
+    func toggle(language: Locale.Language, onText: @escaping @MainActor (String) -> Void) -> Task<Void, Never>? {
         if isListening {
             stop()
-        } else {
-            Task { await start(language: language, onText: onText) }
+            return nil
         }
+        generation += 1
+        let number = generation
+        return Task { await start(number: number, language: language, onText: onText) }
     }
 
     func stop() {
+        generation += 1
         guard isListening else { return }
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
@@ -30,9 +43,14 @@ final class Dictation {
         isListening = false
     }
 
-    private func start(language: Locale.Language, onText: @escaping @MainActor (String) -> Void) async {
+    private func start(
+        number: Int, language: Locale.Language, onText: @escaping @MainActor (String) -> Void
+    ) async {
         problem = nil
-        guard await Self.isAuthorized() else {
+        let isAllowed = await authorize()
+        // The wait above can last as long as a permission prompt stays on screen.
+        guard number == generation else { return }
+        guard isAllowed else {
             problem = "Allow Microphone and Speech Recognition for TranslateMac in System Settings > Privacy & Security."
             return
         }
@@ -78,7 +96,7 @@ final class Dictation {
     // Both callbacks below run off the main thread. They live in nonisolated functions so the
     // closures do not inherit main-actor isolation, which would trap at run time.
 
-    private nonisolated static func isAuthorized() async -> Bool {
+    private nonisolated static func requestSystemAuthorization() async -> Bool {
         let speechAllowed = await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { continuation.resume(returning: $0 == .authorized) }
         }
