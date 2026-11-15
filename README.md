@@ -14,9 +14,9 @@ loads Google Translate in an embedded WebKit view.
 
 The same Portuguese sentence translated into English:
 
-<img src="image-1.png" width="420" alt="Apple translation of Olá, como você está? into English">
+<img src="docs/images/apple-hello.png" width="420" alt="Apple translation of Olá, como você está? into English">
 
-<img src="image-2.png" width="300" alt="Google translation of Olá, como você está? into English">
+<img src="docs/images/google-hello.png" width="300" alt="Google translation of Olá, como você está? into English">
 
 ## Choose a translation service
 
@@ -118,7 +118,7 @@ microphone permission.
 - `Sources/TranslateUI`: SwiftUI views, translation session adapter, speech and dictation.
 - `Sources/TranslateMac`: app entry point, floating panel, global shortcut, menu bar item, Services handler.
 - `App/` and `scripts/make-app.sh`: app bundle.
-- `docs/`: scope and architecture decisions.
+- `docs/`: scope, architecture decisions, and visual assets in `docs/images/`.
 
 ## Roadmap
 
