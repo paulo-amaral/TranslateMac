@@ -20,6 +20,9 @@ public struct TranslatorView: View {
     @State private var typoSuggestion: String?
     @State private var dictation = Dictation()
     @State private var needsSpokenLanguage = false
+    @State private var googleCopyRequest = 0
+    @State private var googleCopySucceeded = false
+    @State private var showGoogleCopyError = false
 
     public init(model: TranslatorModel) {
         _model = State(initialValue: model)
@@ -41,6 +44,15 @@ public struct TranslatorView: View {
                     : "Apple translates on this Mac")
                 Spacer()
                 if translationService == .google {
+                    Button {
+                        googleCopySucceeded = false
+                        googleCopyRequest += 1
+                    } label: {
+                        Image(systemName: googleCopySucceeded ? "checkmark" : "doc.on.doc")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Copy Google translation")
+                    .help(googleCopySucceeded ? "Translation copied" : "Copy Google translation")
                     Text("Sent to Google")
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -62,6 +74,11 @@ public struct TranslatorView: View {
             }
         }
         .frame(minWidth: 420, minHeight: 300)
+        .alert("Translation unavailable", isPresented: $showGoogleCopyError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Wait for Google Translate to show a result, then try copying again.")
+        }
         .translationTask(translationService == .apple ? model.configuration : nil) { session in
             do {
                 try await Task.sleep(for: .milliseconds(300))
@@ -80,6 +97,7 @@ public struct TranslatorView: View {
             if translationService == .apple { model.requestTranslation() }
         }
         .onChange(of: translationService) {
+            googleCopySucceeded = false
             NotificationCenter.default.post(
                 name: .translationServiceDidChange,
                 object: translationService.rawValue
@@ -138,7 +156,17 @@ public struct TranslatorView: View {
                     .foregroundStyle(.secondary)
                     .padding(8)
             }
-            GoogleTranslateView(url: googleURL)
+            GoogleTranslateView(url: googleURL, copyRequest: googleCopyRequest) { copied in
+                googleCopySucceeded = copied
+                showGoogleCopyError = !copied
+                if copied {
+                    let request = googleCopyRequest
+                    Task {
+                        try? await Task.sleep(for: .seconds(2))
+                        if googleCopyRequest == request { googleCopySucceeded = false }
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

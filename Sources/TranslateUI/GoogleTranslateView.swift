@@ -1,10 +1,13 @@
+import AppKit
 import SwiftUI
 import WebKit
 
-/// Displays Google's own translation interface. No page content is read by the app.
+/// Displays Google's own interface. The result is read only when the user requests a native copy.
 struct GoogleTranslateView: NSViewRepresentable {
     @Environment(\.colorScheme) private var colorScheme
     let url: URL
+    let copyRequest: Int
+    let onCopyResult: (Bool) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -149,20 +152,59 @@ struct GoogleTranslateView: NSViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.underPageBackgroundColor = backgroundColor
         context.coordinator.lastRequestedURL = url
+        context.coordinator.lastHandledCopyRequest = copyRequest
         webView.load(URLRequest(url: url))
         return webView
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
         webView.underPageBackgroundColor = backgroundColor
-        guard context.coordinator.lastRequestedURL != url else { return }
-        context.coordinator.lastRequestedURL = url
-        webView.load(URLRequest(url: url))
+        if context.coordinator.lastRequestedURL != url {
+            context.coordinator.lastRequestedURL = url
+            webView.load(URLRequest(url: url))
+        }
+        guard context.coordinator.lastHandledCopyRequest != copyRequest else { return }
+        context.coordinator.lastHandledCopyRequest = copyRequest
+        guard webView.url?.host == "translate.google.com" else {
+            DispatchQueue.main.async { onCopyResult(false) }
+            return
+        }
+        webView.evaluateJavaScript(Self.translationTextScript) { value, _ in
+            guard let text = (value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !text.isEmpty else {
+                onCopyResult(false)
+                return
+            }
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            onCopyResult(pasteboard.setString(text, forType: .string))
+        }
     }
 
     final class Coordinator {
         var lastRequestedURL: URL?
+        var lastHandledCopyRequest = 0
     }
+
+    private static let translationTextScript = """
+        (() => {
+            if (location.hostname !== 'translate.google.com') return '';
+            const copyButton = Array.from(document.querySelectorAll('button')).find(button =>
+                (button.getAttribute('aria-label') || '').toLowerCase() === 'copy translation'
+            );
+            if (!copyButton) return '';
+            // Google's copy control belongs to the result region. innerText excludes hidden
+            // feedback and sharing dialogs that textContent would accidentally copy.
+            const result = copyButton.closest('[role="region"]');
+            if (!result) return '';
+            const lines = result.innerText.split('\\n').map(line => line.trim()).filter(Boolean);
+            const heading = result.querySelector('[role="heading"], h2')?.innerText.trim();
+            const dictionary = result.querySelector('a[href*="/details"]')?.innerText.trim();
+            if (heading && lines[0] === heading) lines.shift();
+            if (dictionary && lines[lines.length - 1] === dictionary) lines.pop();
+            return lines.join('\\n').trim();
+        })();
+        """
 
     private var backgroundColor: NSColor {
         colorScheme == .dark

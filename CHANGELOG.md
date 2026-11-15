@@ -5,6 +5,11 @@ This project follows [Semantic Versioning](https://semver.org) and the format of
 
 ## [Unreleased]
 
+### Fixed
+
+- Google mode now has an app-level copy button that copies the visible translation to the macOS clipboard and reports
+  when no result is available.
+
 ## [0.2.0]
 
 ### Fixed

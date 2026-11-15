@@ -26,7 +26,7 @@ The app remembers your choice.
 | Mode | How it works | Connection |
 | --- | --- | --- |
 | **Apple** (default) | Translates in the native panel with Apple's Translation framework. | Translation runs on the Mac; a language may need an initial system download. |
-| **Google** | Opens the Google Translate website inside the panel. Existing text is prefilled when you switch modes or send a selection through Services; you can also type directly on the page. | Requires internet; text entered on the page or prefilled by the app is sent to Google. |
+| **Google** | Opens the Google Translate website inside the panel. Existing text is prefilled when you switch modes or send a selection through Services; you can also type directly on the page. Use the copy icon in the app header to copy the result. | Requires internet; text entered on the page or prefilled by the app is sent to Google. |
 
 Google mode uses the website, so no Google Cloud API key is needed. Its interface and availability can change when
 Google updates the site. See [Privacy](#privacy) for the data sent in this mode.
@@ -56,7 +56,8 @@ Google updates the site. See [Privacy](#privacy) for the data sent in this mode.
 - Apple translation and dictation run on the Mac. Google Translate mode sends text entered on its site, and up to
   5,000 characters of text prefilled from the app, to Google.
 - The native app does not save or log translated text. Its Google web view uses an in-memory website data store.
-  The app stores the last two language codes and the selected translation service.
+  The app reads the displayed Google result only when you press its copy button, then writes that text to the clipboard.
+  It stores the last two language codes and the selected translation service.
 - Microphone and Speech Recognition access are requested only when you start dictation.
 
 Details are in [SECURITY.md](SECURITY.md).

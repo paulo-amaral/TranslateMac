@@ -16,7 +16,8 @@ Only the latest release receives fixes.
   is sent to Google when this mode is selected. It requires internet access.
 - Dictation uses on-device speech recognition only. A language without it is refused, not sent to a server.
 - The native app does not write translated text to disk or a log. The Google web view uses an in-memory website
-  data store. The app saves two language codes and the selected translation service.
+  data store. When you press the app's Google copy button, it reads the displayed translation and writes it to the
+  system clipboard. The app saves two language codes and the selected translation service.
 - The app asks for Microphone and Speech Recognition access, and only when you start dictation.
 
 ## Release integrity
