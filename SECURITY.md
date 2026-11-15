@@ -19,11 +19,13 @@ Only the latest release receives fixes.
 ## Release integrity
 
 Releases are built by GitHub Actions from the tagged commit. Each release has a SHA-256 checksum and a build
-provenance attestation:
+provenance attestation. The checksum is published next to the archive, so it only detects a damaged download; the
+attestation is what shows the archive came from this repository's release workflow:
 
 ```sh
 shasum -a 256 -c TranslateMac.zip.sha256
-gh attestation verify TranslateMac.zip --repo paulo-amaral/TranslateMac
+gh attestation verify TranslateMac.zip --repo paulo-amaral/TranslateMac \
+  --signer-workflow paulo-amaral/TranslateMac/.github/workflows/release.yml
 ```
 
 The app is signed ad hoc with the hardened runtime. It is not notarized by Apple, so macOS asks for confirmation the

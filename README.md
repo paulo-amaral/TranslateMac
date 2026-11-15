@@ -47,7 +47,8 @@ To check the download:
 
 ```sh
 shasum -a 256 -c TranslateMac.zip.sha256
-gh attestation verify TranslateMac.zip --repo paulo-amaral/TranslateMac
+gh attestation verify TranslateMac.zip --repo paulo-amaral/TranslateMac \
+  --signer-workflow paulo-amaral/TranslateMac/.github/workflows/release.yml
 ```
 
 ## Shortcuts

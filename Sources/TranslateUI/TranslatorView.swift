@@ -156,6 +156,29 @@ public struct TranslatorView: View {
                     .foregroundStyle(.secondary)
             }
 
+            if model.pendingExternalText != nil {
+                HStack {
+                    Label("Another app sent text to translate.", systemImage: "square.and.arrow.down")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Keep My Text") {
+                        model.resolvePendingExternalText(replace: false)
+                    }
+                    Button("Replace") {
+                        model.resolvePendingExternalText(replace: true)
+                    }
+                    .help("Discard what you typed and translate the text from the other app")
+                }
+            } else if model.externalTextWasShortened {
+                Label(
+                    "Only the first \(TranslatorModel.externalTextLimit.formatted()) characters of the selection were kept.",
+                    systemImage: "scissors"
+                )
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            }
+
             if let problem = dictation.problem {
                 Label(problem, systemImage: "mic.slash")
                     .font(.callout)

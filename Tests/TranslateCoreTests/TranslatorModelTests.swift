@@ -208,6 +208,53 @@ struct TranslatorModelTests {
         #expect(TranslatorModel(defaults: defaults).sourceLanguage == nil)
     }
 
+    @Test func textFromAnotherAppFillsAnEmptyPanel() {
+        let model = TranslatorModel(sourceLanguage: portuguese, targetLanguage: english)
+        model.receiveExternalText("bom dia")
+        #expect(model.inputText == "bom dia")
+        #expect(model.pendingExternalText == nil)
+        #expect(model.configuration != nil)
+    }
+
+    @Test func textFromAnotherAppDoesNotReplaceTypedTextUntilThePersonAgrees() {
+        let model = TranslatorModel(sourceLanguage: portuguese, targetLanguage: english)
+        model.inputText = "texto que eu digitei"
+        model.receiveExternalText("texto de outro app")
+        #expect(model.inputText == "texto que eu digitei")
+        #expect(model.pendingExternalText == "texto de outro app")
+
+        model.resolvePendingExternalText(replace: true)
+        #expect(model.inputText == "texto de outro app")
+        #expect(model.pendingExternalText == nil)
+    }
+
+    @Test func decliningKeepsTheTypedText() {
+        let model = TranslatorModel(sourceLanguage: portuguese, targetLanguage: english)
+        model.inputText = "texto que eu digitei"
+        model.receiveExternalText("texto de outro app")
+        model.resolvePendingExternalText(replace: false)
+        #expect(model.inputText == "texto que eu digitei")
+        #expect(model.pendingExternalText == nil)
+    }
+
+    @Test func aSecondHandoverReplacesTheFirstWithoutAsking() {
+        let model = TranslatorModel(sourceLanguage: portuguese, targetLanguage: english)
+        model.receiveExternalText("primeira seleção")
+        model.receiveExternalText("segunda seleção")
+        #expect(model.inputText == "segunda seleção")
+        #expect(model.pendingExternalText == nil)
+    }
+
+    @Test func textFromAnotherAppIsCutAtTheLimit() {
+        let model = TranslatorModel(sourceLanguage: portuguese, targetLanguage: english)
+        model.receiveExternalText(String(repeating: "a", count: TranslatorModel.externalTextLimit + 10))
+        #expect(model.inputText.count == TranslatorModel.externalTextLimit)
+        #expect(model.externalTextWasShortened)
+
+        model.receiveExternalText("curto")
+        #expect(!model.externalTextWasShortened)
+    }
+
     @Test func swapUsesDetectedLanguageAndCarriesOutputAsInput() async {
         let model = TranslatorModel(targetLanguage: portuguese)
         model.inputText = "hello"

@@ -3,6 +3,20 @@
 This project follows [Semantic Versioning](https://semver.org) and the format of
 [Keep a Changelog](https://keepachangelog.com).
 
+## [Unreleased]
+
+### Fixed
+
+- A dictation start that is still waiting for permission no longer opens the microphone after the panel is closed
+  or the text is cleared.
+
+### Changed
+
+- Text sent by another app through the Services menu no longer replaces text you typed without asking, and is cut at
+  20,000 characters.
+- Spelling suggestions are skipped for text longer than 2,000 characters, which kept the panel from freezing.
+- The release workflow builds in a read-only job and publishes from a separate job that holds the write permissions.
+
 ## [0.1.1]
 
 ### Fixed

@@ -2,9 +2,13 @@ import AppKit
 
 @MainActor
 enum TypoFixer {
+    static let longestCheckedText = 2_000
+
     /// The text with every misspelled word replaced by the system's first suggestion,
     /// or nil when there is nothing to fix or no dictionary for the language.
     static func correctedText(for text: String, language: Locale.Language?) -> String? {
+        // The check runs on the main thread and visits every word; a long text would freeze the panel.
+        guard text.utf16.count <= longestCheckedText else { return nil }
         let checker = NSSpellChecker.shared
         guard let code = language?.languageCode?.identifier,
               let dictionary = checker.availableLanguages.first(where: { $0 == code || $0.hasPrefix(code + "_") })

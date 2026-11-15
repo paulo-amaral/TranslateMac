@@ -37,9 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ pasteboard: NSPasteboard, userData: String, error: AutoreleasingUnsafeMutablePointer<NSString>
     ) {
         guard let text = pasteboard.string(forType: .string) else { return }
-        model.inputText = text
-        // The view requests on its own once it exists; this covers a launch caused by the service.
-        model.requestTranslation()
+        model.receiveExternalText(text)
         panel.present()
     }
 

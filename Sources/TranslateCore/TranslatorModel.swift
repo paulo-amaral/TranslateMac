@@ -38,6 +38,10 @@ public final class TranslatorModel {
     public private(set) var detectedLanguage: Locale.Language?
     public private(set) var phase: Phase = .idle
     public private(set) var configuration: TranslationSession.Configuration?
+    /// Text from another app, held until the person decides whether it may replace what they typed.
+    public private(set) var pendingExternalText: String?
+    public private(set) var externalTextWasShortened = false
+    private var lastExternalText: String?
     private var requestRevision = 0
 
     public init(sourceLanguage: Locale.Language? = nil, targetLanguage: Locale.Language) {
@@ -98,6 +102,39 @@ public final class TranslatorModel {
         }
     }
 
+    /// Longest text accepted from another app through the Services menu.
+    public static let externalTextLimit = 20_000
+
+    /// Takes text handed over by another app. It replaces the input only when the panel is empty
+    /// or still shows an earlier handover; text the person typed stays until they choose.
+    public func receiveExternalText(_ text: String) {
+        let accepted = String(text.prefix(Self.externalTextLimit))
+        externalTextWasShortened = accepted.count < text.count
+        let typed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if typed.isEmpty || inputText == lastExternalText || inputText == accepted {
+            useExternalText(accepted)
+        } else {
+            pendingExternalText = accepted
+        }
+    }
+
+    public func resolvePendingExternalText(replace: Bool) {
+        if replace, let pending = pendingExternalText {
+            useExternalText(pending)
+        } else {
+            externalTextWasShortened = false
+        }
+        pendingExternalText = nil
+    }
+
+    private func useExternalText(_ text: String) {
+        pendingExternalText = nil
+        lastExternalText = text
+        inputText = text
+        // The view requests on its own once it exists; this covers a launch caused by the service.
+        requestTranslation()
+    }
+
     public func swapLanguages() {
         guard let newTarget = sourceLanguage ?? detectedLanguage else { return }
         let newSource = targetLanguage
@@ -111,6 +148,8 @@ public final class TranslatorModel {
     }
 
     public func clear() {
+        pendingExternalText = nil
+        externalTextWasShortened = false
         inputText = ""
         outputText = ""
         detectedLanguage = nil

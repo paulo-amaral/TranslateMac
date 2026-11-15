@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 version=${VERSION:-}
 version=${version#v}
 case "$version" in
-    *[!0-9.]*) echo "VERSION must look like 1.2.3" >&2; exit 1 ;;
+    *[!0-9.]* | .* | *. | *..*) echo "VERSION must look like 1.2.3" >&2; exit 1 ;;
 esac
 
 swift build -c release
